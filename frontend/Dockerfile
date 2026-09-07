@@ -1,21 +1,17 @@
 FROM node:20-alpine
 
-# Enable pnpm via Corepack
-RUN corepack enable && corepack prepare pnpm@latest --activate
-
 WORKDIR /app
 
-# Copy lockfile and package manifest first for efficient caching
-COPY package.json pnpm-lock.yaml ./
+# Copy dependency definitions
+COPY package.json package-lock.json ./
 
-# Install dependencies strictly from lockfile
-RUN pnpm install --no-frozen-lockfile
+# Install dependencies strictly inside the container
+RUN npm ci
 
-# Copy remaining source code
+# Copy full application code
 COPY . .
 
-# Expose Next.js port
-EXPOSE 5173
+EXPOSE 3000
 
-# Run Next.js in dev mode
-CMD ["pnpm", "run", "dev"]
+# Next.js dev server listening on all network interfaces
+CMD ["npx", "next", "dev", "-H", "0.0.0.0", "-p", "3000"]
